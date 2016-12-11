@@ -1,0 +1,127 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Neat Complete</title>
+  <meta name="description" content="">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="./neat_complete.css" rel='stylesheet'>
+  <style media="screen">
+    ul.nc_list li.nc_footer{
+      color:#666;
+      font-size:0.8em;
+      text-align:right;
+    }
+  </style>
+  <script src='//cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.2/modernizr.min.js' type='text/javascript'></script>
+</head>
+<body>
+
+  <div class="container first-form">
+    <div class="page-header">
+      <h2>A first</h2>
+    </div>
+    <form class="form-horizontal selecting-dropdown">
+      <div class="form-group">
+        <label for"testbox" class='control-label col-sm-2'>Search:</label>
+        <div class="col-md-5">
+          <input id="testbox" type='text' class="form-control" placeholder="Search for your first" />
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="container">
+    <div class="page-header">
+      <h2>
+        Trial Two
+        <small>Second textbox</small>
+      </h2>
+    </div>
+    <h4>Demo</h4>
+    <form class="form-horizontal demo-form">
+      <div class="form-group">
+        <fieldset>
+          <legend>Selecting elements</legend>
+          <p>
+            <label>Select list</label>
+            <select id = "myList">
+              <option value = "NZ">New Zealand</option>
+              <option value = "2">Australia</option>
+            </select>
+          </p>
+        </fieldset>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.1/jquery.min.js" type='text/javascript'></script>
+<script src="./neatcomplete.js" type='text/javascript'></script>
+
+  <script type="text/javascript">
+
+  </script>
+
+  <script type="text/javascript">
+  $(document).ready(function(){
+    console.log("In document.ready");
+
+    window.widget1 = new NeatComplete.Widget(document.getElementById('testbox'));
+    var language = ["C","C++","C#","Java","JavaScript","Objective-C","Python","Ruby"];
+    widget1.addService('language', function(query, response_fn) {
+        var regex = new RegExp("^" + query, "i");
+        var results = (language).filter(function(value) {
+            return regex.test(value);
+        });
+        var formatted_results = (results).map(function(result) {
+            return { value: result };
+        });
+        response_fn(query, formatted_results);
+    });
+
+    window.widget2 = new NeatComplete.Widget(document.getElementById('testbox'),
+      {footer_content:"search powered by GeoNames.",
+       empty_content:"No results found."});
+    widget2.addService("test",function(query,response_fn){
+      $.ajax({
+				url: "http://api.geonames.org/searchJSON",
+				dataType: "jsonp",
+				data: {featureClass: "P", style: "full", maxRows: 12, name_startsWith: query, username: "cameron_prebble" },
+				success: function( data ) {
+					response_fn(query, $.map( data.geonames, function( item ) {
+						return {
+							value: item.name + ((item.adminName1 && item.adminName1 != item.name) ? ", " + item.adminName1 : "") + ", " + item.countryName,
+							score: item.score,
+							data: item
+						}
+					}));
+				}
+			});
+    });
+    document.getElementById('myList').addEventListener("change", _toggleWidgets);
+});
+  </script>
+
+  <script>
+  var _toggleWidgets = function(retainFields) {
+  console.log("A new event has been toggled");
+  var selectedItem = document.getElementById('myList').value;
+
+  if (selectedItem == "NZ") {
+    console.log("Now in NZ");
+    window.widget1.enable();
+    window.widget2.disable();
+  }
+  else {
+    console.log("Aus Selected")
+    window.widget1.disable();
+    window.widget2.enable();
+  }
+}
+  </script>
+</body>
+</html>

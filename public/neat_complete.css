@@ -1,0 +1,11 @@
+ul.nc_list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: solid 1px black;
+  background: white; }
+  ul.nc_list li.nc_item {
+    cursor: pointer; }
+    ul.nc_list li.nc_item.nc_hover {
+      background-color: steelblue;
+      color: white; }
