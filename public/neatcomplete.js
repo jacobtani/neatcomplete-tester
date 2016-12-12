@@ -3,14 +3,12 @@
  * https://github.com/AbleTech/neat-complete/blob/develop/LICENSE.md
  */
 (function() {
-  console.log("Top 1");
   var slice = [].slice,
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
   (function(root, factory) {
-    console.log("Top 2");
     if (typeof define === 'function' && define.amd) {
       return define(function() {
         return factory(root);
@@ -19,31 +17,28 @@
       return root.NeatComplete = factory(root);
     }
   })(this, function(root) {
-    console.log("root event");
     var NeatComplete;
     NeatComplete = {};
     NeatComplete.addDomEvent = function(elem, event, fn) {
-      console.log("In dispatcher add dom event ")
-      if (elem.attachEvent != null) {
-        elem["e" + event + fn] = fn;
-        elem["" + event + fn] = function() {
-          return elem["e" + event + fn](window.event);
-        };
-        return elem.attachEvent("on" + event, elem["" + event + fn]);
-      } else {
+      if (elem.addEventListener) {
         return elem.addEventListener(event, fn, false);
+      } else {
+        event = "on" + event;
+        var boundedHandler = function() {
+          return fn.apply(elem, arguments);
+        };
+        return elem.attachEvent(event, boundedHandler);
       }
     };
     NeatComplete.removeDomEvent = function(elem, event, fn) {
-      console.log("In remove dom element for dispatcher with " + elem + event)
-      if (elem.detachEvent != null) {
-        return elem.detachEvent("on" + event, elem["" + event + fn]);
-      } else {
-        return elem.removeEventListener(event, fn, false);
+      if (elem.removeEventListener) {
+         elem.removeEventListener(event,fn,false);
       }
+      else if (elem.detachEvent) {
+         elem.detachEvent('on'+event,fn);
+     }
     };
     if (!Array.prototype.indexOf) {
-      console.log("Some array prototype");
       Array.prototype.indexOf = function(searchElement) {
         var k, len, n, t;
         if (this == null) {
@@ -79,22 +74,18 @@
       };
     }
     NeatComplete.Dispatch = (function() {
-      console.log("about to start dispatchg");
       function Dispatch() {}
 
       Dispatch.prototype.setOption = function(key, value) {
-        console.log("Options set key ")
         this.options[key] = value;
         return this;
       };
 
       Dispatch.prototype.getOption = function(key) {
-        console.log("Options key returns: " + this.options[key])
         return this.options[key];
       };
 
       Dispatch.prototype.on = function(event_name, callback) {
-        console.log("Let's see");
         var base;
         if (this.subs == null) {
           this.subs = {};
@@ -107,7 +98,6 @@
       };
 
       Dispatch.prototype.trigger = function() {
-        console.log("Some trigger method");
         var args, callback, event_name, i, len1, ref, ref1;
         event_name = arguments[0], args = 2 <= arguments.length ? slice.call(arguments, 1) : [];
         if (((ref = this.subs) != null ? ref[event_name] : void 0) != null) {
@@ -127,7 +117,6 @@
       extend(Widget, superClass);
 
       function Widget(element, options1) {
-        console.log("Setup widget")
         this.element = element;
         this.options = options1 != null ? options1 : {};
         this._onBlur = bind(this._onBlur, this);
@@ -149,7 +138,6 @@
         this._applyStyle("position", this.options.position);
         this.options.container.appendChild(this.output);
         this;
-        console.log("Finish setup widgets");
       }
 
       Widget.prototype.defaults = {
@@ -166,8 +154,6 @@
       };
 
       Widget.prototype.addService = function(name, search_function, options) {
-        console.log("add service")
-
         var service;
         if (options == null) {
           options = {};
@@ -177,28 +163,21 @@
       };
 
       Widget.prototype.disable = function() {
-        console.log("disabled is " + this)
-
         this.enabled = false;
         return this;
       };
 
       Widget.prototype.enable = function() {
-        console.log("enabled is " + this)
-
         this.enabled = true;
         return this;
       };
 
       Widget.prototype.destroy = function() {
-        console.log("Remove attribute of autocomplete here");
         document.body.removeChild(this.output);
         this.element.removeAttribute("autocomplete");
       };
 
       Widget.prototype._applyDefaults = function() {
-        console.log("apply defaults")
-
         var key, ref, results, value;
         ref = this.defaults;
         results = [];
@@ -214,7 +193,6 @@
       };
 
       Widget.prototype._addListeners = function() {
-        console.log("add listeners");
         NeatComplete.addDomEvent(this.element, "focus", this._onFocus);
         NeatComplete.addDomEvent(this.element, "keypress", this._onKeyPress);
         NeatComplete.addDomEvent(this.element, "keydown", this._onKeyDown);
@@ -222,7 +200,6 @@
       };
 
       Widget.prototype._removeListeners = function() {
-        console.log("remove listeners");
         NeatComplete.removeDomEvent(this.element, "focus", this._onFocus);
         NeatComplete.removeDomEvent(this.element, "keypress", this._onKeyPress);
         NeatComplete.removeDomEvent(this.element, "keydown", this._onKeyDown);
@@ -234,7 +211,6 @@
       };
 
       Widget.prototype._onKeyPress = function(e) {
-        console.log("In key press");
         var ignore_returns, keyCode, ref;
         keyCode = e.which || e.keyCode;
         if (this.visible && keyCode === 13) {
@@ -252,10 +228,8 @@
       };
 
       Widget.prototype._onKeyDown = function(e) {
-        console.log("In key down");
         var keyCode, ref;
         keyCode = e.which || e.keyCode;
-        console.log("Keycode is " + keyCode)
         switch (keyCode) {
           case 38:
             if (this.visible) {
@@ -284,7 +258,6 @@
       };
 
       Widget.prototype._onBlur = function(e) {
-        console.log("Line 4")
         if (!this.mouseDownOnSelect) {
           this.focused = false;
           return this._hideResults();
@@ -292,8 +265,6 @@
       };
 
       Widget.prototype._moveHighlight = function(step) {
-        console.log("Move higlight")
-
         var current_index, ref, ref1;
         current_index = this.highlighted != null ? this.results.indexOf(this.highlighted) : -1;
         if ((ref = this.highlighted) != null) {
@@ -312,8 +283,6 @@
       };
 
       Widget.prototype._getSuggestionsWithTimeout = function() {
-        console.log("Get suggestions with timeoue")
-
         if (this._timeout != null) {
           clearTimeout(this._timeout);
         }
@@ -325,19 +294,14 @@
       };
 
       Widget.prototype._getSuggestions = function() {
-        console.log("Get suggestions")
         var i, len1, ref, results, service;
         if (!this.enabled) {
-          console.log("i am not enabled");
           return;
         }
-        console.log("Let's see 23333");
         if (!this._servicesReady()) {
-          console.log("my services are not ready");
           this.searchQueued = true;
           return;
         }
-        console.log("this element value is " + this.element.value)
         this._val = this.element.value;
         this.error_content = null;
         if (this._val !== '') {
@@ -346,7 +310,6 @@
           for (i = 0, len1 = ref.length; i < len1; i++) {
             service = ref[i];
             results.push(service.search(this._val));
-            console.log("REsults are " + results)
           }
           return results;
         } else {
@@ -355,12 +318,10 @@
       };
 
       Widget.prototype._applyStyle = function(attr, value) {
-        console.log("Apply style")
         return this.output.style[attr] = value;
       };
 
       Widget.prototype._getPosition = function() {
-        console.log("Get Position");
         var coords, el;
         el = this.element;
         coords = {
@@ -375,7 +336,6 @@
       };
 
       Widget.prototype._hideResults = function() {
-        console.log("Hide results");
         var i, len1, ref, results, service;
         this.visible = false;
         this._applyStyle("display", "none");
@@ -390,7 +350,6 @@
       };
 
       Widget.prototype._displayResults = function() {
-        console.log("Display results");
         var coords;
         this.visible = true;
         coords = this._getPosition();
@@ -402,7 +361,6 @@
       };
 
       Widget.prototype._renderItem = function(content, cls) {
-        console.log("In render item")
         var item;
         item = document.createElement("li");
         item.innerHTML = content;
@@ -410,13 +368,11 @@
           item.className = cls;
         }
         NeatComplete.addDomEvent(item, "mousedown", (function(_this) {
-          console.log("in dom event mousedown");
           return function() {
             return _this.mouseDownOnSelect = true;
           };
         })(this));
         NeatComplete.addDomEvent(item, "mouseup", (function(_this) {
-          console.log("in dom event mouseup");
           return function() {
             return _this.mouseDownOnSelect = false;
           };
@@ -433,7 +389,6 @@
       };
 
       Widget.prototype._servicesReady = function() {
-        console.log("services ready fn")
         var i, len1, ref, service, states;
         states = [];
         ref = this.services;
@@ -445,7 +400,6 @@
       };
 
       Widget.prototype.showResults = function() {
-        console.log("In show results");
         var footer, i, j, len1, len2, ref, ref1, result, service;
         if (this._servicesReady()) {
           if (this.searchQueued) {
@@ -502,8 +456,6 @@
       extend(Service, superClass);
 
       function Service(widget, name1, search_fn, options1) {
-        console.log("baout to setup service");
-
         this.widget = widget;
         this.name = name1;
         this.search_fn = search_fn;
@@ -517,7 +469,6 @@
             return _this._response.apply(_this, arguments);
           };
         })(this);
-        console.log("Finish set up service");
       }
 
       Service.prototype.ready = function() {
@@ -540,7 +491,6 @@
             this.results.push(new NeatComplete._Result(this, datum));
           }
           this._ready = true;
-          console.log("Widget show results is " + this.widget.showResults());
           return this.widget.showResults();
         }
       };
@@ -550,7 +500,6 @@
     })(NeatComplete.Dispatch);
     NeatComplete._Result = (function() {
       function _Result(service1, options1) {
-        console.log("Called neat complete result")
         var ref, ref1, ref2, ref3;
         this.service = service1;
         this.options = options1;
@@ -572,7 +521,6 @@
 
       _Result.prototype.addEvents = function() {
         NeatComplete.addDomEvent(this.li, "click", (function(_this) {
-          console.log("In events method");
           return function(e) {
             _this.selectItem();
             if (e.preventDefault) {
@@ -593,7 +541,6 @@
           };
         })(this));
         NeatComplete.addDomEvent(this.li, "mousedown", (function(_this) {
-          console.log("In mouse down");
           return function() {
             return _this.widget.mouseDownOnSelect = true;
           };
